@@ -1,63 +1,43 @@
 trigger:
-
-- main
-
- 
+  - main
 
 pool:
-
   vmImage: ubuntu-latest
 
- 
-
 strategy:
-
   matrix:
-
     Python310:
-
       python.version: '3.10'
-
     Python311:
-
       python.version: '3.11'
-
     Python312:
-
       python.version: '3.12'
 
- 
-
 steps:
-
   - task: UsePythonVersion@0
-
     inputs:
-
       versionSpec: '$(python.version)'
-
     displayName: 'Use Python $(python.version)'
 
- 
-
   - script: |
-
       python -m pip install --upgrade pip
-
       pip install -r requirements.txt
-
+      pip install pytest  # Install pytest if not already in requirements.txt
     displayName: 'Install dependencies'
 
- 
+  - script: |
+      pytest --junitxml=test-results.xml  # Run tests and save results in JUnit format
+    displayName: 'Run Tests'
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/test-results.xml'  # Adjust path as needed
+      mergeTestResults: true
+    displayName: 'Publish Test Results'
 
   - task: ArchiveFiles@2
-
     displayName: 'Archive files'
-
     inputs:
-
       rootFolderOrFile: $(System.DefaultWorkingDirectory)
-
       includeRootFolder: false
-
       archiveType: zip
